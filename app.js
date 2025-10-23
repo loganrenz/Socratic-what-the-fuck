@@ -19,6 +19,7 @@ const clearHistoryBtn = document.getElementById('clearHistory');
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let isRecording = false;
+let stopping = false;
 let finalTranscript = '';
 
 if (SpeechRecognition) {
@@ -58,8 +59,10 @@ if (SpeechRecognition) {
         console.log('Speech recognition ended');
         rantButton.classList.remove('listening');
         
-        if (isRecording) {
-            // If still holding, restart recognition
+        if (stopping) {
+            stopping = false;
+            processTranscript(finalTranscript.trim());
+        } else if (isRecording) {
             recognition.start();
         }
     };
@@ -101,6 +104,7 @@ function stopRanting(e) {
     if (!isRecording) return;
     
     isRecording = false;
+    stopping = true;  // Flag for onend to process
     rantButton.classList.remove('active', 'listening');
     
     if (recognition) {
@@ -108,9 +112,6 @@ function stopRanting(e) {
     }
     
     statusDiv.textContent = 'Processing your rant...';
-    
-    // Process the transcript
-    processTranscript(finalTranscript.trim());
 }
 
 // Process transcript with WebAssembly (mock implementation)
